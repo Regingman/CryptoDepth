@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+	  <TargetFramework>net6.0</TargetFramework>
+    <UserSecretsId>aspnet-ERP-01E28D6B-AC47-446D-88FB-BE71FF23B9BA</UserSecretsId>
+  </PropertyGroup>
+
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="PairList.xlsx" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="PairList.xlsx" />
+	</ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="DotNetEnv" Version="2.3.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" NoWarn="NU1605" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.9" NoWarn="NU1605" />
+	  <PackageReference Include="ClosedXML" Version="0.96.0" />
+	  <PackageReference Include="ClosedXML.Report" Version="0.2.4" />
+	  <PackageReference Include="CsvHelper" Version="28.0.1" />
+	  <PackageReference Include="EPPlus" Version="6.0.7" />
+	  <PackageReference Include="MailKit" Version="3.4.1" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.23.1" />
+	  <PackageReference Include="NLog" Version="5.0.4" />
+	  <PackageReference Include="NLog.Extensions.Logging" Version="5.0.4" />
+	  <PackageReference Include="NLog.Web.AspNetCore" Version="5.1.4" />
+	  <PackageReference Include="Quartz" Version="3.5.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.9" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Design" Version="1.1.6" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.9">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Npgsql" Version="6.0.7" />
+	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.4.0" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CryptoDepth.Application\CryptoDepth.Application.csproj" />
+    <ProjectReference Include="..\CryptoDepth.Domain\CryptoDepth.Domain.csproj" />
+    <ProjectReference Include="..\CryptoDepth.Application\CryptoDepth.Application.csproj" />
+    <ProjectReference Include="..\CryptoDepth.CQR\CryptoDepth.CQR.csproj" />
+    <ProjectReference Include="..\CryptoDepth.Domain\CryptoDepth.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+</Project>
