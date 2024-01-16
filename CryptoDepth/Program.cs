@@ -47,8 +47,8 @@ builder.Services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
 
 builder.Services.AddHostedService<QuartzHostedService>();
 builder.Services.AddSingleton(new JobSchedule(
-   jobType: typeof(BackgroundService),
-   cronExpression: "* * * ? * *"));
+    jobType: typeof(BackgroundService),
+    cronExpression: "*/10 * * ? * * *"));
 #endregion
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>

@@ -77,7 +77,7 @@ namespace CryptoDepth.Application.Services
                 }
                 else
                 {
-                    return;
+                    continue;
                 }
             }
             // Фильтрация по symbols
@@ -205,21 +205,19 @@ namespace CryptoDepth.Application.Services
                     .ToList();
 
                 // Преобразование в TopCoinsInfo
-                var topCoinsInfo = new TopCoinsInfo
-                {
-                    Name1 = sortedCoins.Count >= 1 ? sortedCoins[0].Market.Name : null,
-                    CostToMoveUpUsd1 = sortedCoins.Count >= 1 ? sortedCoins[0].cost_to_move_up_usd : 0,
-                    CostToMoveDownUsd1 = sortedCoins.Count >= 1 ? sortedCoins[0].cost_to_move_down_usd : 0,
+                model.Name1 = sortedCoins.Count >= 1 ? sortedCoins[0].Market.Name : null;
+                model.CostToMoveUpUsd1 = sortedCoins.Count >= 1 ? sortedCoins[0].cost_to_move_up_usd : 0;
+                model.CostToMoveDownUsd1 = sortedCoins.Count >= 1 ? sortedCoins[0].cost_to_move_down_usd : 0;
 
-                    Name2 = sortedCoins.Count >= 2 ? sortedCoins[1].Market.Name : null,
-                    CostToMoveUpUsd2 = sortedCoins.Count >= 2 ? sortedCoins[1].cost_to_move_up_usd : 0,
-                    CostToMoveDownUsd2 = sortedCoins.Count >= 2 ? sortedCoins[1].cost_to_move_down_usd : 0,
+                model.Name2 = sortedCoins.Count >= 2 ? sortedCoins[1].Market.Name : null;
+                model.CostToMoveUpUsd2 = sortedCoins.Count >= 2 ? sortedCoins[1].cost_to_move_up_usd : 0;
+                model.CostToMoveDownUsd2 = sortedCoins.Count >= 2 ? sortedCoins[1].cost_to_move_down_usd : 0;
 
-                    Name3 = sortedCoins.Count >= 3 ? sortedCoins[2].Market.Name : null,
-                    CostToMoveUpUsd3 = sortedCoins.Count >= 3 ? sortedCoins[2].cost_to_move_up_usd : 0,
-                    CostToMoveDownUsd3 = sortedCoins.Count >= 3 ? sortedCoins[2].cost_to_move_down_usd : 0
-                };
-                return topCoinsInfo;
+                model.Name3 = sortedCoins.Count >= 3 ? sortedCoins[2].Market.Name : null;
+                model.CostToMoveUpUsd3 = sortedCoins.Count >= 3 ? sortedCoins[2].cost_to_move_up_usd : 0;
+                model.CostToMoveDownUsd3 = sortedCoins.Count >= 3 ? sortedCoins[2].cost_to_move_down_usd : 0;
+
+                return model;
             }
             else
             {
@@ -256,10 +254,6 @@ namespace CryptoDepth.Application.Services
             if (value != null)
             {
                 var tempvalue = CalculateDepth(value);
-                if (tempvalue != null)
-                {
-                    value = tempvalue;
-                }
             }
         }
     }
