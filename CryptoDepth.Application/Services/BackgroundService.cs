@@ -12,6 +12,10 @@ using static CryptoDepth.Domain.Dto.CoinGekoPars;
 using RestSharp;
 using Quartz;
 using DocumentFormat.OpenXml.Drawing.Charts;
+using System.Collections.Immutable;
+using CryptoDepth.Domain.Data.Adapters;
+using DocumentFormat.OpenXml.EMMA;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CryptoDepth.Application.Services
 {
@@ -19,7 +23,48 @@ namespace CryptoDepth.Application.Services
     {
         private int index = 1;
         private bool flag = true;
+        private bool flagLA = true;
+
         public List<TopCoinsInfo> topCoinsInfos { get; set; } = new List<TopCoinsInfo>();
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+
+        public BackgroundService(IServiceScopeFactory serviceScopeFactory)
+        {
+            _serviceScopeFactory = serviceScopeFactory;
+        }
+
+        public BackgroundService()
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _context = scope.ServiceProvider.GetRequiredService<CryptoDepthDbContext>();
+                //Берем данные из БД
+                topCoinsInfos = _context.TopCoinsInfos.ToList();
+
+                //Очистка данных при новом запуске системы ( Очистка depth+2, depth-2, название биржи)
+                if (topCoinsInfos.Count > 0)
+                {
+                    foreach (TopCoinsInfo info in topCoinsInfos)
+                    {
+                        // Преобразование в TopCoinsInfo
+                        info.Name1 = null;
+                        info.CostToMoveUpUsd1 = 0;
+                        info.CostToMoveDownUsd1 = 0;
+
+                        info.Name2 = null;
+                        info.CostToMoveUpUsd2 = 0;
+                        info.CostToMoveDownUsd2 = 0;
+
+                        info.Name3 = null;
+                        info.CostToMoveUpUsd3 = 0;
+                        info.CostToMoveDownUsd3 = 0;
+
+                        _context.Update(info);
+                    }
+                    _context.SaveChanges();
+                }
+            }
+        }
 
         public void ModifyExcelFile()
         {
@@ -42,6 +87,12 @@ namespace CryptoDepth.Application.Services
                                            Name = temp.BaseTarget,
                                            Symbol = temp.Symbol,
                                        });
+                        }
+                        using (var scope = _serviceScopeFactory.CreateScope())
+                        {
+                            var _context = scope.ServiceProvider.GetRequiredService<CryptoDepthDbContext>();
+                            _context.TopCoinsInfos.AddRange(topCoinsInfos);
+                            _context.SaveChanges();
                         }
                     }
                     else
@@ -66,7 +117,38 @@ namespace CryptoDepth.Application.Services
             {
                 index = 1;
             }
-            for (; index <= 20; index++)
+            if (flagLA)
+            {
+                //Ищет Id на LATOKEN
+                var requestLA = new RestRequest($"/exchanges/latoken/tickers", Method.Get);
+                var responseLA = client.Execute<CoinInfo>(requestLA);
+                // Фильтрация по symbols
+                if (responseLA.IsSuccessful)
+                {
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var _context = scope.ServiceProvider.GetRequiredService<CryptoDepthDbContext>();
+                        var tokensLA = responseLA.Data.Tickers;
+                        foreach (var coinDetails in tokensLA)
+                        {
+                            //Находим нужный символ в нужной строке по Symbol
+                            var matchingSymbol = topCoinsInfos.Where(e => e.Id == null).FirstOrDefault(s => string.Equals(s.Symbol, coinDetails.Base, StringComparison.OrdinalIgnoreCase));
+
+                            if (matchingSymbol != default)
+                            {
+                                matchingSymbol.Id = coinDetails.coin_id;
+                                _context.Update(matchingSymbol);
+                            }
+                        }
+
+                        _context.SaveChanges();
+                    }
+                }
+                flag = false;
+            }
+
+
+            for (; index <= 40; index++)
             {
                 var request = new RestRequest($"/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page={index}&sparkline=false&locale=en", Method.Get);
                 var response = client.Execute<List<CoinDetails>>(request);
@@ -82,7 +164,7 @@ namespace CryptoDepth.Application.Services
             }
             // Фильтрация по symbols
             var selectedCoins = list
-                .Where(coin => coin.Name == "LATOKEN" || topCoinsInfos.Where(e => e.Id == null).Any(symbol => string.Equals(symbol.Symbol, coin.Symbol, StringComparison.OrdinalIgnoreCase)))
+                .Where(coin => topCoinsInfos.Where(e => e.Id == null).Any(symbol => string.Equals(symbol.Symbol, coin.Symbol, StringComparison.OrdinalIgnoreCase)))
                 .OrderByDescending(e => e.market_cap_rank)
                 .ToList();
 
@@ -216,7 +298,12 @@ namespace CryptoDepth.Application.Services
                 model.Name3 = sortedCoins.Count >= 3 ? sortedCoins[2].Market.Name : null;
                 model.CostToMoveUpUsd3 = sortedCoins.Count >= 3 ? sortedCoins[2].cost_to_move_up_usd : 0;
                 model.CostToMoveDownUsd3 = sortedCoins.Count >= 3 ? sortedCoins[2].cost_to_move_down_usd : 0;
-
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var _context = scope.ServiceProvider.GetRequiredService<CryptoDepthDbContext>();
+                    _context.Update(model);
+                    _context.SaveChanges();
+                }
                 return model;
             }
             else

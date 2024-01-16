@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace CryptoDepth.Domain.Dto
             public string Base { get; set; }
             public string Target { get; set; }
             public decimal cost_to_move_up_usd { get; set; }
+            public string coin_id { get; set; }
             public decimal cost_to_move_down_usd { get; set; }
         }
         public class CoinInfo
@@ -34,6 +36,8 @@ namespace CryptoDepth.Domain.Dto
         }
         public class TopCoinsInfo
         {
+            [Key]
+            public int Uq_Id { get; set; }
             public string Name { get; set; }
             public string Symbol { get; set; }
             public string Id { get; set; }

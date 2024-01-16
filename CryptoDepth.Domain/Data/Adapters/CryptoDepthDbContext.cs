@@ -1,5 +1,6 @@
 ﻿using CryptoDepth.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using static CryptoDepth.Domain.Dto.CoinGekoPars;
 
 namespace CryptoDepth.Domain.Data.Adapters
 {
@@ -14,6 +15,6 @@ namespace CryptoDepth.Domain.Data.Adapters
             base.OnModelCreating(modelBuilder);
         }
 
-        public DbSet<TradingPairDepth> TradingPairDepths { get; set; }
+        public DbSet<TopCoinsInfo> TopCoinsInfos { get; set; }
     }
 }
