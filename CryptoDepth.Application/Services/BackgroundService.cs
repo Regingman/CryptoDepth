@@ -82,8 +82,8 @@ namespace CryptoDepth.Application.Services
             }
             // Фильтрация по symbols
             var selectedCoins = list
+                .Where(coin => coin.Name == "LATOKEN" || topCoinsInfos.Where(e => e.Id == null).Any(symbol => string.Equals(symbol.Symbol, coin.Symbol, StringComparison.OrdinalIgnoreCase)))
                 .OrderByDescending(e => e.market_cap_rank)
-                .Where(coin => topCoinsInfos.Where(e => e.Id == null).Any(symbol => string.Equals(symbol.Symbol, coin.Symbol, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
             foreach (var coinDetails in selectedCoins.OrderByDescending(e => e.market_cap_rank))
