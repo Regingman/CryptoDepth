@@ -17,12 +17,15 @@ namespace CryptoDepth.Application.Services
 {
     public class BackgroundService : IBackgroundService, IJob
     {
+        private int index = 1;
+        private bool flag = true;
         public List<TopCoinsInfo> topCoinsInfos { get; set; } = new List<TopCoinsInfo>();
 
         public void ModifyExcelFile()
         {
-            if (topCoinsInfos.Count == 0)
+            if (topCoinsInfos.Count == 0 && flag)
             {
+                flag = false;
                 ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
                 try
                 {
@@ -55,37 +58,42 @@ namespace CryptoDepth.Application.Services
 
         public void GetCoinDetailsList()
         {
-            var count = topCoinsInfos.Where(e => e.Id == null).Count();
-            if (count != 0)
+            List<CoinDetails> list = new List<CoinDetails>();
+            var client = new RestClient("https://api.coingecko.com/api/v3");
+
+            var listCheck = topCoinsInfos.Where(e => e.Id != null).ToList();
+            if (index > 1 && listCheck.Count == 0)
             {
-                List<CoinDetails> list = new List<CoinDetails>();
-                var client = new RestClient("https://api.coingecko.com/api/v3");
-                for (int i = 1; i <= 20; i++)
-                {
-                    var request = new RestRequest($"/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page={i}&sparkline=false&locale=en", Method.Get);
-                    var response = client.Execute<List<CoinDetails>>(request);
+                index = 1;
+            }
+            for (; index <= 20; index++)
+            {
+                var request = new RestRequest($"/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page={index}&sparkline=false&locale=en", Method.Get);
+                var response = client.Execute<List<CoinDetails>>(request);
 
-                    if (response.IsSuccessful)
-                    {
-                        list.AddRange(response.Data);
-                    }
+                if (response.IsSuccessful)
+                {
+                    list.AddRange(response.Data);
                 }
-
-                // Фильтрация по symbols
-                var selectedCoins = list
-                    .OrderByDescending(e => e.market_cap_rank)
-                    .Where(coin => topCoinsInfos.Where(e => e.Id == null).Any(symbol => string.Equals(symbol.Symbol, coin.Symbol, StringComparison.OrdinalIgnoreCase)))
-                    .ToList();
-
-                foreach (var coinDetails in selectedCoins.OrderByDescending(e => e.market_cap_rank))
+                else
                 {
-                    //Находим нужный символ в нужной строке по Symbol
-                    var matchingSymbol = topCoinsInfos.Where(e => e.Id == null).FirstOrDefault(s => string.Equals(s.Symbol, coinDetails.Symbol, StringComparison.OrdinalIgnoreCase));
+                    return;
+                }
+            }
+            // Фильтрация по symbols
+            var selectedCoins = list
+                .OrderByDescending(e => e.market_cap_rank)
+                .Where(coin => topCoinsInfos.Where(e => e.Id == null).Any(symbol => string.Equals(symbol.Symbol, coin.Symbol, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
 
-                    if (matchingSymbol != default)
-                    {
-                        matchingSymbol.Id = coinDetails.Id;
-                    }
+            foreach (var coinDetails in selectedCoins.OrderByDescending(e => e.market_cap_rank))
+            {
+                //Находим нужный символ в нужной строке по Symbol
+                var matchingSymbol = topCoinsInfos.Where(e => e.Id == null).FirstOrDefault(s => string.Equals(s.Symbol, coinDetails.Symbol, StringComparison.OrdinalIgnoreCase));
+
+                if (matchingSymbol != default)
+                {
+                    matchingSymbol.Id = coinDetails.Id;
                 }
             }
         }
@@ -221,15 +229,23 @@ namespace CryptoDepth.Application.Services
 
         public Task Execute(IJobExecutionContext context)
         {
-            //Получение списка пар из excel файла
-            ModifyExcelFile();
-            if (topCoinsInfos != null)
+            //На случай отключения интернета
+            try
             {
-                //Получение Id для списка пар
-                GetCoinDetailsList();
-                //Получение depth для первой взятой пары, запрос будет работать раз
-                //в 5 секунд, поэтому будет обновляться depth для одной пары раз в 5 минут
-                BackgroundCalculateDepth();
+                //Получение списка пар из excel файла
+                ModifyExcelFile();
+                if (topCoinsInfos != null && !flag)
+                {
+                    //Получение Id для списка пар
+                    GetCoinDetailsList();
+                    //Получение depth для первой взятой пары, запрос будет работать раз
+                    //в 5 секунд, поэтому будет обновляться depth для одной пары раз в 5 минут
+                    BackgroundCalculateDepth();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
             return Task.CompletedTask;
         }
