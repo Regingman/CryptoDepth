@@ -223,12 +223,14 @@ namespace CryptoDepth.Application.Services
         {
             //Получение списка пар из excel файла
             ModifyExcelFile();
-            //Получение Id для списка пар
-            GetCoinDetailsList();
-            //Получение depth для первой взятой пары, запрос будет работать раз
-            //в 5 секунд, поэтому будет обновляться depth для одной пары раз в 5 минут
-            BackgroundCalculateDepth();
-
+            if (topCoinsInfos != null)
+            {
+                //Получение Id для списка пар
+                GetCoinDetailsList();
+                //Получение depth для первой взятой пары, запрос будет работать раз
+                //в 5 секунд, поэтому будет обновляться depth для одной пары раз в 5 минут
+                BackgroundCalculateDepth();
+            }
             return Task.CompletedTask;
         }
 
